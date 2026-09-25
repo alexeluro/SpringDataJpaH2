@@ -6,10 +6,15 @@ import java.util.UUID
 data class RegisterUserRequest(
     val username: String,
     val email: String,
-    val password: String
+    val password: String,
+    val role: UserRole = UserRole.USER
 )
 
 data class LoginRequest(
     val email: String,
     val password: String
+)
+
+data class RefreshTokenRequest(
+    val refreshToken: String
 )

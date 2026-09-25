@@ -44,4 +44,9 @@ class AuthController(
         return tokenPair
     }
 
+    @PostMapping("/refresh")
+    fun refreshToken(@RequestBody refreshTokenRequest: RefreshTokenRequest): TokenPair {
+        return authenticationService.refresh(refreshTokenRequest.refreshToken)
+    }
+
 }

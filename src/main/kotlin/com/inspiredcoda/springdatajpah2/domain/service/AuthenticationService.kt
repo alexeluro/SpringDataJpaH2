@@ -88,7 +88,6 @@ class AuthenticationService(
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
 
-        return user.toUserDto()
         val accessToken = jwtService.generateAccessToken(user.id, user.role.name)
         val refreshToken = jwtService.generateRefreshToken(user.id, user.role.name)
 
@@ -107,6 +106,47 @@ class AuthenticationService(
         )
     }
 
+    fun refresh(refreshToken: String): TokenPair {
+        val isValid = jwtService.validateRefreshToken(refreshToken)
+        if (!isValid) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
+        }
+
+        val userIdFromToken = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findById(userIdFromToken).orElseThrow {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
+        }
+
+        val refreshToken = tokenRepository.findByUserIdAndHashedToken(userIdFromToken, hashToken(refreshToken))
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token")
+
+        val isTokenExpired = refreshToken.expiresIn < Instant.now()
+        if (isTokenExpired) {
+            tokenRepository.delete(refreshToken)
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Refresh token expired")
+        }
+
+        if (user.id != userIdFromToken) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid refresh token")
+        }
+
+        val newAccessToken = jwtService.generateAccessToken(user.id, user.role.name)
+        val newRefreshToken = jwtService.generateRefreshToken(user.id, user.role.name)
+
+        tokenRepository.save(
+            RefreshToken(
+                user.id,
+                hashToken(newRefreshToken),
+                expiresIn = Instant.now().plusSeconds(JwtService.REFRESH_TOKEN_VALIDITY_MILLIS),
+                createdAt = Instant.now()
+            )
+        )
+
+        return TokenPair(
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken
+        )
+    }
 
     private fun hashToken(value: String): String {
         val messageDigest = MessageDigest.getInstance("SHA-256")
