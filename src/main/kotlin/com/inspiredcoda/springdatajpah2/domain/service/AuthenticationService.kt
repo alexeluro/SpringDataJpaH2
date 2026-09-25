@@ -20,20 +20,25 @@ class AuthenticationService(
         email: String,
         password: String,
     ): UserDto {
-        val userExists = userRepository.findByEmail(email) != null
-        if (userExists) {
+        val userWithEmailExists = userRepository.findByEmail(email) != null
+        if (userWithEmailExists) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "email is not available")
         }
 
-        val user = User(
+        val userWithUsernameExists = userRepository.findByUsername(username) != null
+        if (userWithUsernameExists) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "username is not available")
+        }
+
+        val newUser = User(
             id = UUID.randomUUID(),
             username = username,
             email = email,
-            hashedPassword = passwordEncoder(password),
-            role = UserRole.USER
+            hashedPassword = hashEncoder.hash(password),
+            role = role
         )
 
-        val savedUser = userRepository.save(user)
+        val savedUser = userRepository.save(newUser)
 
         return savedUser.toUserDto()
     }
