@@ -1,37 +1,48 @@
 package com.inspiredcoda.springdatajpah2.data.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.io.Serializable
-import java.util.Collections
-import java.util.UUID
+import java.util.*
 
 @Entity
 @Table(name = "users_entity")
 data class User(
     @Id
     val id: UUID,
-    val username: String,
-    val email: String,
-    val hashedPassword: String,
-    val role: UserRole
-)/*: UserDetails*/ {
 
-//    override fun getAuthorities(): Collection<out GrantedAuthority> {
-//        return Collections.emptyList<GrantedAuthority>()
-//    }
-//
-//    override fun getPassword(): String? {
-//        return hashedPassword
-//    }
-//
-//    override fun getUsername(): String {
-//        return username
-//    }
-    enum class UserRole: Serializable {
+    @Column(name = "username")
+    private val username: String,
+
+    @Column(name = "email")
+    val email: String,
+
+    @Column(name = "hashed_password")
+    val hashedPassword: String,
+
+    @Column(name = "role")
+    val role: UserRole
+): UserDetails {
+
+    override fun getAuthorities(): Collection<out GrantedAuthority> {
+        return listOf(SimpleGrantedAuthority("ROLE_$role"))
+    }
+
+    override fun getPassword(): String? {
+        return hashedPassword
+    }
+
+    override fun getUsername(): String {
+        return username
+    }
+
+
+    enum class UserRole : Serializable {
         USER, ADMIN
     }
 

@@ -10,18 +10,26 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-class SpringConfiguration {
+class SpringConfiguration(
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+) {
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
+            // Never disable csrf without SessionCreationPolicy as STATELESS to avoid a csrf attack
             .csrf { it.disable() }
             .cors { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/api/v1/auth/**").authenticated()
+                    .requestMatchers("/api/v1/auth/**", "/h2-console/**").permitAll()
+                    .dispatcherTypeMatchers(
+                        DispatcherType.ERROR,
+                        DispatcherType.FORWARD
+                    ).permitAll()
+//                    .requestMatchers("/api/v1/users/").hasRole("ADMIN")
                     .anyRequest()
-                    .permitAll()
+                    .authenticated()
             }
             .sessionManagement {  session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

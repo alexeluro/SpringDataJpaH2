@@ -18,6 +18,7 @@ class JwtService(
 
     private fun generateToken(
         userId: UUID,
+        role: String,
         type: String,
         validityInMs: Long,
     ): String {
@@ -27,6 +28,7 @@ class JwtService(
         return Jwts.builder()
             .subject(userId.toString())
             .claim("type", type)
+            .claim("role", role)
             .issuedAt(issueDate)
             .expiration(expiryDate)
             .signWith(JWT_SECRET, Jwts.SIG.HS256)
@@ -34,15 +36,17 @@ class JwtService(
     }
 
     fun generateAccessToken(
-        userid: UUID
+        userid: UUID,
+        role: String,
     ): String {
-        return generateToken(userid, "access", ACCESS_TOKEN_VALIDITY_MILLIS)
+        return generateToken(userid, role, "access", ACCESS_TOKEN_VALIDITY_MILLIS)
     }
 
     fun generateRefreshToken(
-        userid: UUID
+        userid: UUID,
+        role: String,
     ): String {
-        return generateToken(userid, "refresh", REFRESH_TOKEN_VALIDITY_MILLIS)
+        return generateToken(userid, role, "refresh", REFRESH_TOKEN_VALIDITY_MILLIS)
     }
 
     private fun extractRawToken(token: String): String {
@@ -70,6 +74,13 @@ class JwtService(
 
         // We are sure that the subject is our UUID because that's what we passed in when we created the token in the generateToken function
         return UUID.fromString(claims.subject)
+    }
+
+    fun getUserRoleFromToken(token: String): String {
+        val claims = parseClaims(token) ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")
+
+        // We are sure that the subject is our UUID because that's what we passed in when we created the token in the generateToken function
+        return claims["role"].toString()
     }
 
     private fun parseClaims(token: String): Claims? {
