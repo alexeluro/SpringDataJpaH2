@@ -32,7 +32,7 @@ class JwtAuthenticationFilter(
             if (bearerToken.startsWith("Bearer")) {
                 val userId = jwtService.getUserIdFromToken(token = bearerToken)
                 val userRole = jwtService.getUserRoleFromToken(token = bearerToken)
-                val userDetails = authenticationService.loadUserByUsername(userId.toString())
+//                val userDetails = authenticationService.loadUserByUsername(userId.toString())
                 // THIS IS ONLY SO WE CAN ACCESS THE AUTHENTICATED USER's ID ACROSS THE APP
                 val authenticationToken =
                     UsernamePasswordAuthenticationToken(userId, null, listOf(SimpleGrantedAuthority("ROLE_${userRole}")))

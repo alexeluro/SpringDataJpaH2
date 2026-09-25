@@ -32,7 +32,7 @@ class SpringConfiguration(
                         DispatcherType.ERROR,
                         DispatcherType.FORWARD
                     ).permitAll()
-//                    .requestMatchers("/api/v1/users/").hasRole("ADMIN")
+                    .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                     .anyRequest()
                     .authenticated()
             }
