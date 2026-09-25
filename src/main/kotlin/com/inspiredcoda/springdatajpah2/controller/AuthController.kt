@@ -36,12 +36,12 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: LoginRequest): TokenPair {
-        val user = authenticationService.login(
+        val tokenPair = authenticationService.login(
             loginRequest.email,
             loginRequest.password
         )
 
-        return user
+        return tokenPair
     }
 
 }
